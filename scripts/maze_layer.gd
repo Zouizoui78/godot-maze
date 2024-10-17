@@ -22,7 +22,10 @@ func _ready() -> void:
 	get_window().size = Vector2i(width * tile_size[0], height * tile_size[1])
 
 	#show_tileset() # commente make_maze() si tu décommentes ça
-	make_maze() # passe true en argument pour voir le labyrinthe se construire
+
+	var args = Array(OS.get_cmdline_args())
+	var slow_mode = args.has("-s")
+	make_maze(slow_mode) # passe true en argument pour voir le labyrinthe se construire
 	
 func show_tileset() -> void:
 	width = 4
