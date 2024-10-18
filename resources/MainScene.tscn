@@ -1,7 +1,9 @@
-[gd_scene load_steps=5 format=3 uid="uid://c46eq852iakg1"]
+[gd_scene load_steps=7 format=3 uid="uid://c46eq852iakg1"]
 
 [ext_resource type="Texture2D" uid="uid://dd0l7huhynvkw" path="res://assets/roads/roadTextures_tilesheet.png" id="1_8fq4g"]
 [ext_resource type="Script" path="res://scripts/maze_layer.gd" id="1_r6e3i"]
+[ext_resource type="Script" path="res://scripts/loop_slider.gd" id="3_ncm6p"]
+[ext_resource type="Script" path="res://scripts/new_maze_button.gd" id="4_odj8u"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_lxk3g"]
 texture = ExtResource("1_8fq4g")
@@ -32,3 +34,18 @@ sources/0 = SubResource("TileSetAtlasSource_lxk3g")
 [node name="MazeLayer" type="TileMapLayer" parent="."]
 tile_set = SubResource("TileSet_ytng7")
 script = ExtResource("1_r6e3i")
+
+[node name="UI" type="VBoxContainer" parent="."]
+offset_right = 238.0
+offset_bottom = 83.0
+
+[node name="NewMazeButton" type="Button" parent="UI"]
+layout_mode = 2
+text = "New maze"
+script = ExtResource("4_odj8u")
+
+[node name="LoopSlider" type="HSlider" parent="UI"]
+layout_mode = 2
+max_value = 1.0
+step = 0.1
+script = ExtResource("3_ncm6p")

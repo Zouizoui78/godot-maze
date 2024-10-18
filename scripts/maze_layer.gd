@@ -12,50 +12,73 @@ const cell_walls = {
 	Vector2i(0, -1): N
 }
 
-var tile_size = tile_set.tile_size
+var tile_size: Vector2i = tile_set.tile_size
 var width = 30
 var height = 20
 
+var maze_seed = null
+
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	maze_seed = randi()
+
+	var args = Array(OS.get_cmdline_args())
+
+	var demo = args.any(func(arg): return arg in ["-t", "--tileset"])
+	if demo:
+		show_tileset()
+		return
+
+	var slow_mode = args.any(func(arg): return arg in ["-s", "--slow-mode"])
+
+	make_maze(0, false)
+
 	# changement de la taille de la fenêtre pour qu'elle puisse afficher toutes les tuiles
 	get_window().size = Vector2i(width * tile_size[0], height * tile_size[1])
 
-	#show_tileset() # commente make_maze() si tu décommentes ça
 
-	var args = Array(OS.get_cmdline_args())
-	var slow_mode = args.has("-s")
-	make_maze(slow_mode) # passe true en argument pour voir le labyrinthe se construire
-	
 func show_tileset() -> void:
 	width = 4
 	height = 4
 	for h in range(height):
 		for w in range(width):
 			set_cell(Vector2i(w, h), 0, wall_mask_to_atlas_coords(h * 4 + w))
-	
-	
-func list_unvisited_neighbors(cell, unvisited):
+
+
+func list_unvisited_neighbors(cell: Vector2i, unvisited: Array[Vector2i]) -> Array[Vector2i]:
 	# returns an array of cell's unvisited neighbors
-	var list = []
+	var list: Array[Vector2i] = []
+
 	for n in cell_walls.keys():
 		if cell + n in unvisited:
 			list.append(cell + n)
+
 	return list
-	
-func make_maze(slow_mode: bool = false):
-	var unvisited = []  # array of unvisited tiles
-	var stack = []
-	var current = Vector2i(0, 0)
+
+
+# Show grass on each tile and return an array of coordinates of the tiles
+func clear_maze() -> Array[Vector2i]:
+	clear()
+
+	var grass_atlas_coords = wall_mask_to_atlas_coords(W|S|E|N)
+	var unvisited: Array[Vector2i]
 
 	# fill the map with solid tiles
-	clear()
-	var grass_atlas_coords = wall_mask_to_atlas_coords(W|S|E|N)
 	for x in range(width):
 		for y in range(height):
 			unvisited.append(Vector2i(x, y))
 			set_cell(Vector2i(x, y), 0, grass_atlas_coords)
-	
+
+	return unvisited
+
+
+func make_maze(loop_fraction: float = 0, slow_mode: bool = false) -> void:
+	seed(maze_seed)
+
+	var stack = []
+	var current = Vector2i(0, 0)
+	var unvisited = clear_maze()
+
 	unvisited.erase(current)
 
 	# execute recursive backtracker algorithm
@@ -67,16 +90,10 @@ func make_maze(slow_mode: bool = false):
 
 			# calcul la direction de la case actuelle vers la prochaine case
 			var direction = next - current
-			
-			# récupère les coordonnées de la tuile actuelle dans le tileset
-			var current_coords = get_cell_atlas_coords(current)
-			
-			# récupère le wall_mask (= id) de la tuile depuis ses coordonnées dans le tileset
-			var current_wall_mask = atlas_coords_to_wall_mask(current_coords)
-			
-			# même chose pour la case suivante
-			var next_coords = get_cell_atlas_coords(next)
-			var next_wall_mask = atlas_coords_to_wall_mask(next_coords)
+
+			# récupère le wall_mask (= id) de la tuile courante et de la suivante
+			var current_wall_mask = cell_coords_to_wall_mask(current)
+			var next_wall_mask = cell_coords_to_wall_mask(next)
 
 			# on "supprime" le bon mur (celui se trouvant entre current et next)
 			# de la case actuelle et de la suivante
@@ -91,14 +108,40 @@ func make_maze(slow_mode: bool = false):
 			unvisited.erase(current)
 		elif stack:
 			current = stack.pop_back()
-		
+
 		if slow_mode:
 			# attend le début du processing de la prochaine frame
 			# autrement dit on met à jour le labyrinthe une fois par frame
 			# donc 30 fois/secondes si on est à 30fps par exemple
-			await get_tree().process_frame 
+			await get_tree().process_frame
 
-func wall_mask_to_atlas_coords(wall_mask) -> Vector2i:
+	if loop_fraction > 0:
+		make_loops(loop_fraction)
+
+
+func make_loops(loop_fraction: float):
+	loop_fraction = clampf(loop_fraction, 0 , 1)
+	var cell_border_margin = 2
+
+	for i in range(int(width * height * loop_fraction)):
+		var cell_x = randi_range(cell_border_margin, width - cell_border_margin)
+		var cell_y = randi_range(cell_border_margin, height - cell_border_margin)
+		var cell = Vector2i(cell_x, cell_y)
+		var neighbor = cell_walls.keys()[randi() % cell_walls.size()]
+
+		var cell_wall_mask = cell_coords_to_wall_mask(cell)
+		var neighbor_wall_mask = cell_coords_to_wall_mask(cell + neighbor)
+
+		# if there's a wall between cell and neighbor
+		if cell_wall_mask & cell_walls[neighbor]:
+			var new_cell_wall = cell_wall_mask - cell_walls[neighbor]
+			var new_neighbor_wall_mask = neighbor_wall_mask - cell_walls[-neighbor]
+
+			set_cell(cell, 0, wall_mask_to_atlas_coords(new_cell_wall))
+			set_cell(cell + neighbor, 0, wall_mask_to_atlas_coords(new_neighbor_wall_mask))
+
+
+func wall_mask_to_atlas_coords(wall_mask: int) -> Vector2i:
 	match wall_mask:
 		0:
 			return Vector2i(9, 0)
@@ -133,7 +176,8 @@ func wall_mask_to_atlas_coords(wall_mask) -> Vector2i:
 		_: # 15 or default, show grass
 			return Vector2i(0, 2)
 
-func atlas_coords_to_wall_mask(atlas_coords) -> int:
+
+func atlas_coords_to_wall_mask(atlas_coords: Vector2i) -> int:
 	match atlas_coords:
 		Vector2i(9, 0):
 			return 0
@@ -169,6 +213,5 @@ func atlas_coords_to_wall_mask(atlas_coords) -> int:
 			return W | S | E | N
 
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
-	pass
+func cell_coords_to_wall_mask(cell_coords: Vector2i) -> int:
+	return atlas_coords_to_wall_mask(get_cell_atlas_coords(cell_coords))
