@@ -29,9 +29,7 @@ func _ready() -> void:
 		show_tileset()
 		return
 
-	var slow_mode = args.any(func(arg): return arg in ["-s", "--slow-mode"])
-
-	make_maze(0, false)
+	make_maze()
 
 	# changement de la taille de la fenêtre pour qu'elle puisse afficher toutes les tuiles
 	get_window().size = Vector2i(width * tile_size[0], height * tile_size[1])
@@ -60,7 +58,7 @@ func list_unvisited_neighbors(cell: Vector2i, unvisited: Array[Vector2i]) -> Arr
 func clear_maze() -> Array[Vector2i]:
 	clear()
 
-	var grass_atlas_coords = wall_mask_to_atlas_coords(W|S|E|N)
+	var grass_atlas_coords = wall_mask_to_atlas_coords(W | S | E | N)
 	var unvisited: Array[Vector2i]
 
 	# fill the map with solid tiles
@@ -72,7 +70,11 @@ func clear_maze() -> Array[Vector2i]:
 	return unvisited
 
 
-func make_maze(loop_fraction: float = 0, slow_mode: bool = false) -> void:
+func make_maze() -> void:
+	var loop_fraction = get_node("/root/Node2D/UI/LoopSlider").value
+	var slow_mode = get_node("/root/Node2D/UI/SlowModeCheckbox").is_pressed()
+
+	print("loop_fraction = ", loop_fraction, ", slow_mode = ", slow_mode)
 	seed(maze_seed)
 
 	var stack = []
@@ -110,17 +112,14 @@ func make_maze(loop_fraction: float = 0, slow_mode: bool = false) -> void:
 			current = stack.pop_back()
 
 		if slow_mode:
-			# attend le début du processing de la prochaine frame
-			# autrement dit on met à jour le labyrinthe une fois par frame
-			# donc 30 fois/secondes si on est à 30fps par exemple
 			await get_tree().process_frame
 
 	if loop_fraction > 0:
-		make_loops(loop_fraction)
+		make_loops(loop_fraction, slow_mode)
 
 
-func make_loops(loop_fraction: float):
-	loop_fraction = clampf(loop_fraction, 0 , 1)
+func make_loops(loop_fraction: float, slow_mode: bool):
+	loop_fraction = clampf(loop_fraction, 0, 1)
 	var cell_border_margin = 2
 
 	for i in range(int(width * height * loop_fraction)):
@@ -139,6 +138,9 @@ func make_loops(loop_fraction: float):
 
 			set_cell(cell, 0, wall_mask_to_atlas_coords(new_cell_wall))
 			set_cell(cell + neighbor, 0, wall_mask_to_atlas_coords(new_neighbor_wall_mask))
+
+		if slow_mode:
+			await get_tree().process_frame
 
 
 func wall_mask_to_atlas_coords(wall_mask: int) -> Vector2i:
@@ -162,7 +164,7 @@ func wall_mask_to_atlas_coords(wall_mask: int) -> Vector2i:
 		W: # 8
 			return Vector2i(4, 2)
 		W | N: # 9
-			return Vector2i(1,0)
+			return Vector2i(1, 0)
 		W | E: # 10
 			return Vector2i(0, 0)
 		W | E | N: # 11
@@ -197,7 +199,7 @@ func atlas_coords_to_wall_mask(atlas_coords: Vector2i) -> int:
 			return S | E | N # 7
 		Vector2i(4, 2):
 			return W # 8
-		Vector2i(1,0):
+		Vector2i(1, 0):
 			return W | N # 9
 		Vector2i(0, 0):
 			return W | E # 10

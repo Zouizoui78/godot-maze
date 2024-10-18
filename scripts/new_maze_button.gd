@@ -7,7 +7,6 @@ func _ready() -> void:
 
 
 func _on_click():
-	var loop_slider_value = get_node("../LoopSlider").value
 	var maze_layer = get_node("/root/Node2D/MazeLayer")
 	maze_layer.maze_seed = randi()
-	maze_layer.make_maze(loop_slider_value, false)
+	maze_layer.make_maze()

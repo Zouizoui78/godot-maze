@@ -6,6 +6,5 @@ func _ready() -> void:
 	self.value_changed.connect(self._update_maze)
 
 
-func _update_maze(value_changed: bool) -> void:
-	var maze_layer = get_node("/root/Node2D/MazeLayer")
-	maze_layer.make_maze(self.value, false)
+func _update_maze(_new_value: float) -> void:
+	get_node("/root/Node2D/MazeLayer").make_maze()

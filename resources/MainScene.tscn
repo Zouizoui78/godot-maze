@@ -39,6 +39,10 @@ script = ExtResource("1_r6e3i")
 offset_right = 238.0
 offset_bottom = 83.0
 
+[node name="SlowModeCheckbox" type="CheckBox" parent="UI"]
+layout_mode = 2
+text = "Slow Mode"
+
 [node name="NewMazeButton" type="Button" parent="UI"]
 layout_mode = 2
 text = "New maze"
