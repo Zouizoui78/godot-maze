@@ -1,12 +1,12 @@
-[gd_scene load_steps=7 format=3 uid="uid://c46eq852iakg1"]
+[gd_scene load_steps=7 format=3 uid="uid://b0yimm6rf2q2e"]
 
-[ext_resource type="Texture2D" uid="uid://dd0l7huhynvkw" path="res://assets/roads/roadTextures_tilesheet.png" id="1_8fq4g"]
+[ext_resource type="Texture2D" uid="uid://k5tdta20mj8t" path="res://assets/roads/road_tilesheet.png" id="1_h2aw8"]
 [ext_resource type="Script" path="res://scripts/maze_layer.gd" id="1_r6e3i"]
 [ext_resource type="Script" path="res://scripts/loop_slider.gd" id="3_ncm6p"]
 [ext_resource type="Script" path="res://scripts/new_maze_button.gd" id="4_odj8u"]
 
-[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_lxk3g"]
-texture = ExtResource("1_8fq4g")
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_5lrue"]
+texture = ExtResource("1_h2aw8")
 texture_region_size = Vector2i(64, 64)
 0:0/0 = 0
 0:1/0 = 0
@@ -15,19 +15,19 @@ texture_region_size = Vector2i(64, 64)
 2:0/0 = 0
 2:1/0 = 0
 1:1/0 = 0
-9:0/0 = 0
-8:2/0 = 0
-8:3/0 = 0
-9:3/0 = 0
-9:2/0 = 0
 4:2/0 = 0
 5:2/0 = 0
-4:3/0 = 0
 5:3/0 = 0
+4:3/0 = 0
+8:2/0 = 0
+9:2/0 = 0
+9:3/0 = 0
+8:3/0 = 0
+9:0/0 = 0
 
 [sub_resource type="TileSet" id="TileSet_ytng7"]
 tile_size = Vector2i(64, 64)
-sources/0 = SubResource("TileSetAtlasSource_lxk3g")
+sources/0 = SubResource("TileSetAtlasSource_5lrue")
 
 [node name="Node2D" type="Node2D"]
 

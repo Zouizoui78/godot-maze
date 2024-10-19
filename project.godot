@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="godot-maze"
-run/main_scene="res://resources/MainScene.tscn"
+run/main_scene="res://resources/main_scene.tscn"
 config/features=PackedStringArray("4.3", "GL Compatibility")
 config/icon="res://icon.svg"
 
